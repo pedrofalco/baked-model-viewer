@@ -6,11 +6,13 @@
 	import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 	import '/src/style.css';
 
+	import { isChecked, files } from '$lib/store';
+
+	$: console.log($files)
+
 	let canvas;
 	let loading = true;
 	let progress_bar = 1;
-
-	export let file;
 
 	let bakedModel;
 	let bakedColor;
@@ -18,22 +20,24 @@
 
 	let warning;
 
-	file.forEach((element) => {
-		const fileName = element.toLowerCase(); // Ensure case-insensitivity
+	$files.forEach((element) => {
+		try {
+			console.log('element', element.name)
+			const fileName = element.toLowerCase(); // Ensure case-insensitivity
 
-		if (fileName.includes('color')) {
-			bakedColor = element;
-		} else if (fileName.includes('emissive')) {
-			bakedEmission = element;
-		} else if (fileName.includes('model')) {
-			bakedModel = element;
+			if (fileName.includes('color')) {
+				bakedColor = element;
+			} else if (fileName.includes('emissive')) {
+				bakedEmission = element;
+			} else if (fileName.includes('model')) {
+				bakedModel = element;
+			}
+		} catch(e) {
+			console.log('element undefined')
 		}
+
 	});
 	console.log(bakedColor, bakedModel, bakedEmission);
-
-	if (!bakedColor) {
-		console.log('there is no baked color');
-	}
 
 	onMount(() => {
 		// Scene
@@ -53,7 +57,7 @@
 		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 		renderer.toneMappingFolder = THREE.ACESFilmicToneMapping;
 		renderer.setSize(window.innerWidth, window.innerHeight);
-		//   container.appendChild(renderer.domElement);
+		renderer.setClearColor(0x333333); // Use hexadecimal color code
 
 		// Orbit Controls
 		const controls = new OrbitControls(camera, renderer.domElement);
@@ -78,55 +82,94 @@
 			console.log('There was an error loading ' + url);
 		};
 
-		// Load Texture
+		/* LOADERS */
 		const textureLoader = new THREE.TextureLoader(manager);
-		const texture = bakedColor ? textureLoader.load(`/models/${bakedColor}`) : null;
-		if (texture) {
-			texture.flipY = false;
-			texture.colorSpace = THREE.SRGBColorSpace;
-		}
-		//Emissive
-		const emissiveTexture = bakedEmission
-			? textureLoader.load(`/models/${bakedEmission}`)
-			: null;
-		if (emissiveTexture) {
-			emissiveTexture.flipY = false; // Flip the emissive texture map on the Y axis
-			emissiveTexture.encoding = THREE.sRGBEncoding; // Set emissive texture encoding
-		}
-
-		// Load 3D Model
 		const loader = new GLTFLoader(manager);
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath('/draco/');
 		loader.setDRACOLoader(dracoLoader);
+		
+		/* MAIN SCENE */
+		if ($isChecked) {
+			// Load Texture
+			const mainTextureColor = textureLoader.load(`/models/ARCADEROOM-BAKE-COLOR.png`);
+			mainTextureColor.flipY = false;
+			mainTextureColor.colorSpace = THREE.SRGBColorSpace;
 
-		loader.load(`/models/${bakedModel}`, (gltf) => {
-			const model = gltf.scene;
-			console.log(model);
+			//Emissive
+			const mainEmissiveTexture = textureLoader.load(`/models/ARCADEROOM-EMISSIVE.png`);
+			mainEmissiveTexture.flipY = false; // Flip the emissive texture map on the Y axis
+			mainEmissiveTexture.encoding = THREE.sRGBEncoding; // Set emissive texture encoding
 
-			if (emissiveTexture) {
+			//Load 3D Model
+			loader.load(`/models/ARCADEROOM-MODEL.glb`, (gltf) => {
+				const model = gltf.scene;
 				model.traverse((child) => {
 					if (child.isMesh) {
 						child.material = new THREE.MeshStandardMaterial({
-							map: texture,
-							emissiveMap: emissiveTexture,
+							map: mainTextureColor,
+							emissiveMap: mainEmissiveTexture,
 							emissive: new THREE.Color(0xffffff),
 							side: THREE.DoubleSide,
 						});
 					}
 				});
-			} else {
-				model.traverse((child) => {
-					if (child.isMesh) {
-						child.material = new THREE.MeshBasicMaterial({
-							map: texture,
-							side: THREE.DoubleSide,
-						});
-					}
-				});
-			}
-			scene.add(model);
-		});
+				scene.add(model);
+			});
+		}
+
+		/*EXTERNAL ASSETS*/
+
+		//Load Texture
+		const externalColorTexture = bakedColor ? textureLoader.load(`/models/${bakedColor}`) : null;
+		if (externalColorTexture) {
+			externalColorTexture.flipY = false;
+			externalColorTexture.colorSpace = THREE.SRGBColorSpace;
+		}
+		//Emissive
+		const externalEmissiveTexture = bakedEmission
+			? textureLoader.load(`/models/${bakedEmission}`)
+			: null;
+		if (externalEmissiveTexture) {
+			externalEmissiveTexture.flipY = false;
+			externalEmissiveTexture.encoding = THREE.sRGBEncoding;
+		}
+
+		// Load 3D Model
+		if (bakedModel) {
+			loader.load(`/models/${bakedModel}`, (gltf) => {
+				const model = gltf.scene;
+				console.log(model);
+
+				// model.scale.set(0.25, 0.25, 0.25);
+
+				if (externalEmissiveTexture) {
+					model.traverse((child) => {
+						if (child.isMesh) {
+							child.material = new THREE.MeshStandardMaterial({
+								map: externalColorTexture,
+								emissiveMap: externalEmissiveTexture,
+								emissive: new THREE.Color(0xffffff),
+								side: THREE.DoubleSide,
+							});
+						}
+					});
+				} else {
+					model.traverse((child) => {
+						if (child.isMesh) {
+							child.material = new THREE.MeshBasicMaterial({
+								map: externalColorTexture,
+								side: THREE.DoubleSide,
+							});
+						}
+					});
+				}
+				scene.add(model);
+			});
+		} else {
+			console.error("Error: You are currently viewing the default scene, but you have not provided a 3D model file. Please make sure to upload a model file before proceeding.");
+		}
+
 
 		// Resize handling
 		window.addEventListener('resize', onWindowResize, false);
@@ -148,7 +191,7 @@
 
 		setTimeout(() => {
 			warning.style.display = 'none';
-		}, 3000);
+		}, 5000);
 	});
 </script>
 

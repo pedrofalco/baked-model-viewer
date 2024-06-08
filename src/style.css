@@ -51,7 +51,10 @@
     font-weight: 700; /* 'bold' is replaced with 700 */
 }
 body {
-    background-color: #333
+    background-color: #333;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 * {
