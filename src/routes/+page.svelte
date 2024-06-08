@@ -1,4 +1,3 @@
-<!-- <canvas bind:this={canvas} /> -->
 <script>
 	import FileUpload from '$lib/FileUpload.svelte';
 	import Scene from '$lib/Scene.svelte';
@@ -14,8 +13,8 @@
 {#if loaded}
 	<Scene />
 {:else}
-	<div class="flex flex-col items-baseline justify-center w-fit h-screen gap-4 mx-auto">
-		<p class="select-none text-5xl mb-4">model &#x1F9CA; viewer</p>
+	<div class="w-1/2 flex flex-col items-baseline justify-center h-screen gap-4 mx-auto">
+		<p class="select-none text-6xl mb-4 self-center">model &#x1F9CA; viewer</p>
 		<Toggle/>
 		<FileUpload on:submit={handleFileSubmit} />
 	</div>

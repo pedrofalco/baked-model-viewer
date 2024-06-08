@@ -8,7 +8,7 @@
 
 	import { isChecked, files } from '$lib/store';
 
-	$: console.log($files)
+	console.log($files)
 
 	let canvas;
 	let loading = true;
@@ -22,15 +22,15 @@
 
 	$files.forEach((element) => {
 		try {
-			console.log('element', element.name)
-			const fileName = element.toLowerCase(); // Ensure case-insensitivity
+			console.log('element', element.path)
+			const fileName = element.path.toLowerCase(); // Ensure case-insensitivity
 
 			if (fileName.includes('color')) {
-				bakedColor = element;
+				bakedColor = element.path;
 			} else if (fileName.includes('emissive')) {
-				bakedEmission = element;
+				bakedEmission = element.path;
 			} else if (fileName.includes('model')) {
-				bakedModel = element;
+				bakedModel = element.path;
 			}
 		} catch(e) {
 			console.log('element undefined')
