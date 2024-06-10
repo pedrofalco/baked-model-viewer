@@ -21,7 +21,6 @@
 				};
 				files.update(existingFiles => [...existingFiles, fileObject]);
 			};
-
 			reader.readAsArrayBuffer(file); // or readAsDataURL(file) depending on your needs
 		});
   	}

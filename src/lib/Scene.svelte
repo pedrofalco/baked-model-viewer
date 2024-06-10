@@ -51,7 +51,7 @@
 				bakedEmission = createTextureMaterialFromArrayBuffer(element.data);
 			} else if (fileName.endsWith('.glb')) {
 				bakedModel = element.data;
-			} else if (fileName.includes('opacity')) {
+			} else if (fileName.includes('alpha')) {
 				bakedAlpha = createTextureMaterialFromArrayBuffer(element.data);
 			}
 		} catch(e) {
@@ -153,9 +153,11 @@
 			loader.parse(bakedModel, '', (gltf) => {
 				const model = gltf.scene;
 				// model.scale.set(0.25, 0.25, 0.25);
-
+				let i = 0
 				if (externalEmissiveTexture) {
+					let currentIndex = 0;
 					model.traverse((child) => {
+
 						if (child.isMesh) {
 							child.material = new THREE.MeshStandardMaterial({
 								map: externalColorTexture,
@@ -164,10 +166,13 @@
 								alphaMap: externalAlphaTexture,
 								transparent: true,
 								side: THREE.DoubleSide,
-								depthWrite: false, // Disable writing to the depth buffer
 							});
-							child.backFaceCulling = false;
+							// if (currentIndex === 5) {
+							// 	console.log(child)
+							// 	child.material.depthWrite = false;
+							// }
 						}
+						currentIndex++
 					});
 				} else {
 					model.traverse((child) => {
@@ -367,8 +372,7 @@
 {/if}
 
 <style>
-	/* Style the progress bar's filled area */
 	progress::-webkit-progress-value {
-		background-color: white; /* Change to desired color */
+		background-color: white;
 	}
 </style>
