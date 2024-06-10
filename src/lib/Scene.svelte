@@ -2,13 +2,33 @@
 	import { onMount } from 'svelte';
 	import * as THREE from 'three';
 	import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+	import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 	import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 	import '/src/style.css';
 
 	import { isChecked, files } from '$lib/store';
-
-	console.log($files)
+	
+	/* LOADERS */
+	// Loading Manager
+	const manager = new THREE.LoadingManager();
+	manager.onLoad = function () {
+		console.log('Loading complete!');
+		setTimeout(() => {
+			loading = false;
+		}, 1000);
+	};
+	manager.onProgress = function (url, itemsLoaded, itemsTotal) {
+		progress_bar = (itemsLoaded / itemsTotal) * 100;
+	};
+	manager.onError = function (url) {
+		console.log('There was an error loading ' + url);
+	};
+	const textureLoader = new THREE.TextureLoader(manager);
+	const loader = new GLTFLoader(manager);
+	const dracoLoader = new DRACOLoader();
+	dracoLoader.setDecoderPath('/draco/');
+	loader.setDRACOLoader(dracoLoader);
 
 	let canvas;
 	let loading = true;
@@ -17,27 +37,28 @@
 	let bakedModel;
 	let bakedColor;
 	let bakedEmission;
+	let bakedAlpha;
 
 	let warning;
 
 	$files.forEach((element) => {
 		try {
-			console.log('element', element.path)
 			const fileName = element.path.toLowerCase(); // Ensure case-insensitivity
 
 			if (fileName.includes('color')) {
-				bakedColor = element.path;
+				bakedColor = createTextureMaterialFromArrayBuffer(element.data);
 			} else if (fileName.includes('emissive')) {
-				bakedEmission = element.path;
+				bakedEmission = createTextureMaterialFromArrayBuffer(element.data);
 			} else if (fileName.includes('model')) {
-				bakedModel = element.path;
+				bakedModel = element.data;
+			} else if (fileName.includes('opacity')) {
+				bakedAlpha = createTextureMaterialFromArrayBuffer(element.data);
 			}
 		} catch(e) {
 			console.log('element undefined')
 		}
 
 	});
-	console.log(bakedColor, bakedModel, bakedEmission);
 
 	onMount(() => {
 		// Scene
@@ -45,13 +66,13 @@
 
 		// Camera
 		const camera = new THREE.PerspectiveCamera(
-			75,
+			50,
 			window.innerWidth / window.innerHeight,
 			0.1,
 			1000,
 		);
-		camera.position.y = 2.5;
-		camera.position.z = -5;
+		camera.position.y = 1.75;
+		camera.position.z = 0;
 
 		// Renderer
 		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -60,34 +81,12 @@
 		renderer.setClearColor(0x333333); // Use hexadecimal color code
 
 		// Orbit Controls
-		const controls = new OrbitControls(camera, renderer.domElement);
-		controls.enableDamping = true;
-
+		const controls = new PointerLockControls(camera, renderer.domElement);
+		controls.pointerSpeed = 1.2
 		// Ambient Light
 		const ambientLight = new THREE.AmbientLight(0xffffff, 2.0); // Color, Intensity
 		scene.add(ambientLight);
 
-		// Loading Manager
-		const manager = new THREE.LoadingManager();
-		manager.onLoad = function () {
-			console.log('Loading complete!');
-			setTimeout(() => {
-				loading = false;
-			}, 1000);
-		};
-		manager.onProgress = function (url, itemsLoaded, itemsTotal) {
-			progress_bar = (itemsLoaded / itemsTotal) * 100;
-		};
-		manager.onError = function (url) {
-			console.log('There was an error loading ' + url);
-		};
-
-		/* LOADERS */
-		const textureLoader = new THREE.TextureLoader(manager);
-		const loader = new GLTFLoader(manager);
-		const dracoLoader = new DRACOLoader();
-		dracoLoader.setDecoderPath('/draco/');
-		loader.setDRACOLoader(dracoLoader);
 		
 		/* MAIN SCENE */
 		if ($isChecked) {
@@ -126,26 +125,33 @@
 		/*EXTERNAL ASSETS*/
 
 		//Load Texture
-		const externalColorTexture = bakedColor ? textureLoader.load(`/models/${bakedColor}`) : null;
+		const externalColorTexture = bakedColor ? textureLoader.load(bakedColor) : null;
 		if (externalColorTexture) {
 			externalColorTexture.flipY = false;
 			externalColorTexture.colorSpace = THREE.SRGBColorSpace;
 		}
 		//Emissive
 		const externalEmissiveTexture = bakedEmission
-			? textureLoader.load(`/models/${bakedEmission}`)
+			? textureLoader.load(bakedEmission)
 			: null;
 		if (externalEmissiveTexture) {
 			externalEmissiveTexture.flipY = false;
 			externalEmissiveTexture.encoding = THREE.sRGBEncoding;
 		}
+		//Alpha
+		const externalAlphaTexture = bakedAlpha
+			? textureLoader.load(bakedAlpha)
+			: null;
+		if (externalAlphaTexture) {
+			externalAlphaTexture.flipY = false;
+			externalAlphaTexture.encoding = THREE.sRGBEncoding;
+		}
 
 		// Load 3D Model
-		if (bakedModel) {
-			loader.load(`/models/${bakedModel}`, (gltf) => {
-				const model = gltf.scene;
-				console.log(model);
 
+		if (bakedModel) {
+			loader.parse(bakedModel, '', (gltf) => {
+				const model = gltf.scene;
 				// model.scale.set(0.25, 0.25, 0.25);
 
 				if (externalEmissiveTexture) {
@@ -155,6 +161,8 @@
 								map: externalColorTexture,
 								emissiveMap: externalEmissiveTexture,
 								emissive: new THREE.Color(0xffffff),
+								alphaMap: externalAlphaTexture,
+								transparent: true,
 								side: THREE.DoubleSide,
 							});
 						}
@@ -170,12 +178,12 @@
 					});
 				}
 				scene.add(model);
+				URL.revokeObjectURL(bakedEmission);
+				URL.revokeObjectURL(bakedColor);
 			});
 		} else {
 			console.error("Error: You are currently viewing the default scene, but you have not provided a 3D model file. Please make sure to upload a model file before proceeding.");
 		}
-
-
 		// Resize handling
 		window.addEventListener('resize', onWindowResize, false);
 
@@ -185,10 +193,73 @@
 			renderer.setSize(window.innerWidth, window.innerHeight);
 		}
 
+		onclick = () => {
+			controls.lock();
+		};
+
+		// Movement variables
+		const moveSpeed = 0.1;
+		const velocity = new THREE.Vector3();
+		const direction = new THREE.Vector3();
+		const keys = {
+			forward: false,
+			backward: false,
+			left: false,
+			right: false,
+		};
+
+		onkeydown = (event) => {
+			switch (event.code) {
+				case 'KeyW':
+					keys.forward = true;
+					break;
+				case 'KeyS':
+					keys.backward = true;
+					break;
+				case 'KeyA':
+					keys.left = true;
+					break;
+				case 'KeyD':
+					keys.right = true;
+					break;
+			}
+		};
+
+		onkeyup = (event) => {
+			switch (event.code) {
+				case 'KeyW':
+					keys.forward = false;
+					break;
+				case 'KeyS':
+					keys.backward = false;
+					break;
+				case 'KeyA':
+					keys.left = false;
+					break;
+				case 'KeyD':
+					keys.right = false;
+					break;
+			}
+		};
+
 		// Animation loop
 		const animate = () => {
 			requestAnimationFrame(animate);
-			controls.update();
+			// controls.update();
+
+			//CONTROLS
+			    // Update movement direction
+				direction.z = Number(keys.forward) - Number(keys.backward);
+				direction.x = Number(keys.right) - Number(keys.left);
+				direction.normalize(); // this ensures consistent movement in all directions
+
+				// Update velocity
+				velocity.z = direction.z * moveSpeed;
+				velocity.x = direction.x * moveSpeed;
+
+				controls.moveRight(velocity.x);
+				controls.moveForward(velocity.z);
+
 			renderer.render(scene, camera);
 		};
 
@@ -199,7 +270,13 @@
 		}, 5000);
 	});
 
-	$: console.log($isChecked)
+	function createTextureMaterialFromArrayBuffer(arrayBuffer) {
+		// Convert ArrayBuffer to Blob
+		const blob = new Blob([arrayBuffer]);
+		// Create a data URL from the Blob
+		const url = URL.createObjectURL(blob);
+		return url;
+	}
 </script>
 
 <canvas bind:this={canvas} />
@@ -224,7 +301,7 @@
 	class="absolute left-1/2 top-0 -translate-x-1/2 z-20 flex flex-col gap-2 mt-4 text-xs"
 >
 	{#if !bakedColor}
-		<div role="alert" class="alert alert-error">
+		<div role="alert" class="alert alert-warning">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="stroke-current shrink-0 h-6 w-6"
@@ -238,12 +315,12 @@
 					d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
 				/>
 			</svg>
-			<span>Error! There's no Base Color Texture</span>
+			<span>Warning! There's no Base Color Texture</span>
 		</div>
 	{/if}
 
 	{#if !bakedEmission}
-		<div role="alert" class="alert alert-error">
+		<div role="alert" class="alert alert-warning">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="stroke-current shrink-0 h-6 w-6"
@@ -257,12 +334,12 @@
 					d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
 				/>
 			</svg>
-			<span>Error! There's no Emission Texture</span>
+			<span>Warning! There's no Emission Texture</span>
 		</div>
 	{/if}
 
 	{#if !bakedModel}
-		<div role="alert" class="alert alert-error">
+		<div role="alert" class="alert alert-warning">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="stroke-current shrink-0 h-6 w-6"
@@ -276,7 +353,7 @@
 					d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
 				/>
 			</svg>
-			<span>Error! There's no Model provided</span>
+			<span>Warning! There's no Model provided</span>
 		</div>
 	{/if}
 

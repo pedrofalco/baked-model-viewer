@@ -6,39 +6,27 @@
 
 	const dispatch = createEventDispatcher();
 	
-	let droppedFiles = {
-		accepted: [],
-		rejected: []
-	};
+	let localFiles = [];
 
 	function handleFilesSelect(e) {
-		const { acceptedFiles, fileRejections } = e.detail;
-		droppedFiles.accepted = [...droppedFiles.accepted, ...acceptedFiles];
-		droppedFiles.rejected = [...droppedFiles.rejected, ...fileRejections];
+		const { acceptedFiles } = e.detail;
+		localFiles = [...acceptedFiles];
+		acceptedFiles.forEach(file => {
+			const reader = new FileReader();
+			
+			reader.onload = () => {
+				const fileObject = {
+				path: file.name,
+				data: reader.result
+				};
+				files.update(existingFiles => [...existingFiles, fileObject]);
+			};
 
-		files.set(droppedFiles.accepted);
-	}
-
-	let localFiles = [null, null, null];
-	let finalFiles = [];
-
-    // function handleFileChange(event, index) {
-    //     const file = event.target.files[0];
-    //     localFiles[index] = file;
-    //     files.set(localFiles);
-    // }
+			reader.readAsArrayBuffer(file); // or readAsDataURL(file) depending on your needs
+		});
+  	}
 
 	function handleSubmit() {
-		console.log('Submitted localFiles:', localFiles);
-		localFiles.forEach((file, index) => {
-			if (file) {
-				console.log(`File ${index + 1}: ${file.name} (${Math.round(file.size / 1024)} KB)`);
-				localFiles.push(file.name);
-			} else {
-				console.log(`File ${index + 1}: No file selected`);
-			}
-		});
-		// Dispatch an event to notify the parent component
 		dispatch('submit', { loaded: true });
 	}
 </script>
@@ -46,22 +34,13 @@
 
 <div class="w-full space-y-2">
 	<Dropzone disableDefaultStyles containerClasses={'bg-gray-800 h-56 border-dashed border-2 rounded-sm border-[#777] flex justify-center items-center p-4 text-sm italic tracking-tight'} on:drop={handleFilesSelect}>drag & drop your files here —— click to select files</Dropzone>
+	
+	{#each localFiles as file}
+		<div class="text-xs">
+			{file.path} ({Math.round(file.size / 1024)} KB)
+		</div>
+	{/each}
 
-	{#if droppedFiles.accepted[0]}
-		<div class="text-xs">
-			{droppedFiles.accepted[0].name} ({Math.round(droppedFiles.accepted[0].size / 1024)} KB)
-		</div>
-	{/if}
-	{#if droppedFiles.accepted[1]}
-		<div class="text-xs">
-			{droppedFiles.accepted[1].name} ({Math.round(droppedFiles.accepted[1].size / 1024)} KB)
-		</div>
-	{/if}
-	{#if droppedFiles.accepted[2]}
-		<div class="text-xs">
-			{droppedFiles.accepted[2].name} ({Math.round(droppedFiles.accepted[2].size / 1024)} KB)
-		</div>
-	{/if}
 </div>
 <button class="btn btn-glass btn-sm self-end" on:click={handleSubmit}>.submit-localFiles</button>
 

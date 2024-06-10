@@ -2,4 +2,4 @@
 import { writable } from 'svelte/store';
 
 export const isChecked = writable(true);
-export const files = writable([null, null, null]);
+export const files = writable([]);
