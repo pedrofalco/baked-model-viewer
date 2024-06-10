@@ -118,6 +118,11 @@
 			});
 		}
 
+		if (!bakedModel && !bakedColor && !bakedEmission && !$isChecked) {
+			loading = false;
+		}
+
+
 		/*EXTERNAL ASSETS*/
 
 		//Load Texture
@@ -193,6 +198,8 @@
 			warning.style.display = 'none';
 		}, 5000);
 	});
+
+	$: console.log($isChecked)
 </script>
 
 <canvas bind:this={canvas} />
@@ -272,7 +279,13 @@
 			<span>Error! There's no Model provided</span>
 		</div>
 	{/if}
+
 </div>
+
+{#if !bakedModel && !bakedColor && !bakedEmission && !$isChecked}
+	<button on:click={() => {location.reload()}} class="absolute left-1/2 bottom-0 -translate-x-1/2 p-2 mb-2 rounded-xl border border-white" href="/">.go home &#x1F35E</button>
+	<h1 class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-5xl text-center">.nothing to load —.—</h1>
+{/if}
 
 <style>
 	/* Style the progress bar's filled area */

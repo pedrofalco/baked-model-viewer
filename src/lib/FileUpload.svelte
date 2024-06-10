@@ -44,24 +44,25 @@
 </script>
 
 
-<Dropzone disableDefaultStyles containerClasses={'bg-gray-800 h-56 w-full border-dashed border-2 rounded-sm border-[#777] flex justify-center items-center p-4 text-sm italic'} on:drop={handleFilesSelect}>drag 'n' drop your files here, or click to select files</Dropzone>
+<div class="w-full space-y-2">
+	<Dropzone disableDefaultStyles containerClasses={'bg-gray-800 h-56 border-dashed border-2 rounded-sm border-[#777] flex justify-center items-center p-4 text-sm italic tracking-tight'} on:drop={handleFilesSelect}>drag & drop your files here —— click to select files</Dropzone>
 
-{#if droppedFiles.accepted[0]}
-	<div class="text-xs">
-		{droppedFiles.accepted[0].name} ({Math.round(droppedFiles.accepted[0].size / 1024)} KB)
-	</div>
-{/if}
-{#if droppedFiles.accepted[1]}
-	<div class="text-xs">
-		{droppedFiles.accepted[1].name} ({Math.round(droppedFiles.accepted[1].size / 1024)} KB)
-	</div>
-{/if}
-{#if droppedFiles.accepted[2]}
-	<div class="text-xs">
-		{droppedFiles.accepted[2].name} ({Math.round(droppedFiles.accepted[2].size / 1024)} KB)
-	</div>
-{/if}
-
+	{#if droppedFiles.accepted[0]}
+		<div class="text-xs">
+			{droppedFiles.accepted[0].name} ({Math.round(droppedFiles.accepted[0].size / 1024)} KB)
+		</div>
+	{/if}
+	{#if droppedFiles.accepted[1]}
+		<div class="text-xs">
+			{droppedFiles.accepted[1].name} ({Math.round(droppedFiles.accepted[1].size / 1024)} KB)
+		</div>
+	{/if}
+	{#if droppedFiles.accepted[2]}
+		<div class="text-xs">
+			{droppedFiles.accepted[2].name} ({Math.round(droppedFiles.accepted[2].size / 1024)} KB)
+		</div>
+	{/if}
+</div>
 <button class="btn btn-glass btn-sm self-end" on:click={handleSubmit}>.submit-localFiles</button>
 
 
