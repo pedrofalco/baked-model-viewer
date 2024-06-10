@@ -49,7 +49,7 @@
 				bakedColor = createTextureMaterialFromArrayBuffer(element.data);
 			} else if (fileName.includes('emissive')) {
 				bakedEmission = createTextureMaterialFromArrayBuffer(element.data);
-			} else if (fileName.includes('model')) {
+			} else if (fileName.endsWith('.glb')) {
 				bakedModel = element.data;
 			} else if (fileName.includes('opacity')) {
 				bakedAlpha = createTextureMaterialFromArrayBuffer(element.data);
@@ -164,7 +164,9 @@
 								alphaMap: externalAlphaTexture,
 								transparent: true,
 								side: THREE.DoubleSide,
+								depthWrite: false, // Disable writing to the depth buffer
 							});
+							child.backFaceCulling = false;
 						}
 					});
 				} else {
