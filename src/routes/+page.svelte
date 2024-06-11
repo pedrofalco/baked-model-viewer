@@ -2,12 +2,13 @@
 	import FileUpload from '$lib/FileUpload.svelte';
 	import Scene from '$lib/Scene.svelte';
 	import Toggle from '$lib/Toggle.svelte';
+	import SocialIcons from '$lib/SocialIcons.svelte';
 	import { onMount } from 'svelte';
 
 	let loaded = false;
 	let info = false;
 	
-	onMount(() => info.click() )
+	// onMount(() => info.click() )
 	
 </script>
 
@@ -69,3 +70,4 @@
 	<!-- {/if} -->
 {/if}
 
+<SocialIcons/>
