@@ -32,7 +32,7 @@
 
 
 <div class="w-full space-y-2">
-	<Dropzone disableDefaultStyles containerClasses={'flex flex-col gap-3 bg-gray-800 h-56 border-dashed border-2 rounded-sm border-[#777] flex justify-center items-center p-4 text-xl tracking-tight'} on:drop={handleFilesSelect}>.drop your files here<span class="text-sm">make sure to include the words <b>color</b>, <b>emissive</b>, and/or <b>alpha</b> in your image texture filenames.</span></Dropzone>
+	<Dropzone disableDefaultStyles containerClasses={'flex flex-col text-center gap-3 bg-gray-800 h-56 border-dashed border-2 rounded-sm border-[#777] flex justify-center items-center p-4 text-xl tracking-tight'} on:drop={handleFilesSelect}>.drop your files here<span class="text-xs">make sure to include the words <b>color</b>, <b>emissive</b>, and/or <b>alpha</b> in your image texture filenames.</span></Dropzone>
 	
 	{#each localFiles as file}
 		<div class="text-xs">

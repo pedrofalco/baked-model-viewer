@@ -167,10 +167,10 @@
 								transparent: true,
 								side: THREE.DoubleSide,
 							});
-							// if (currentIndex === 5) {
-							// 	console.log(child)
-							// 	child.material.depthWrite = false;
-							// }
+							if (currentIndex === 5) {
+								console.log(child)
+								child.material.depthWrite = false;
+							}
 						}
 						currentIndex++
 					});
