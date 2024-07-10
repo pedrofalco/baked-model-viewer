@@ -1,5 +1,5 @@
 {
-	"name": "ice-model-viewer",
+	"name": "baked-model-viewer",
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
