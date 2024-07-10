@@ -76,7 +76,7 @@
 
 		// Renderer
 		const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-		renderer.toneMappingFolder = THREE.ACESFilmicToneMapping;
+		// renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		renderer.setSize(window.innerWidth, window.innerHeight);
 		renderer.setClearColor(0x333333); // Use hexadecimal color code
 
@@ -98,7 +98,6 @@
 			//Emissive
 			const mainEmissiveTexture = textureLoader.load(`/models/ARCADEROOM-EMISSIVE.png`);
 			mainEmissiveTexture.flipY = false; // Flip the emissive texture map on the Y axis
-			mainEmissiveTexture.encoding = THREE.sRGBEncoding; // Set emissive texture encoding
 
 			//Load 3D Model
 			loader.load(`/models/ARCADEROOM-MODEL.glb`, (gltf) => {
@@ -136,7 +135,6 @@
 			: null;
 		if (externalEmissiveTexture) {
 			externalEmissiveTexture.flipY = false;
-			externalEmissiveTexture.encoding = THREE.sRGBEncoding;
 		}
 		//Alpha
 		const externalAlphaTexture = bakedAlpha
@@ -144,7 +142,6 @@
 			: null;
 		if (externalAlphaTexture) {
 			externalAlphaTexture.flipY = false;
-			externalAlphaTexture.encoding = THREE.sRGBEncoding;
 		}
 
 		// Load 3D Model
