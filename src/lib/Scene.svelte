@@ -304,8 +304,8 @@
 	bind:this={warning}
 	class="absolute left-1/2 top-0 -translate-x-1/2 z-20 flex flex-col gap-2 mt-4 text-xs"
 >
-	{#if !bakedColor}
-		<div role="alert" class="alert alert-warning">
+	{#if !bakedModel && !bakedColor && !bakedEmission && $isChecked}
+		<div role="alert" class="alert alert-success">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="stroke-current shrink-0 h-6 w-6"
@@ -319,48 +319,66 @@
 					d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
 				/>
 			</svg>
-			<span>Warning! There's no Base Color Texture</span>
+			<span>Loading default scene</span>
 		</div>
-	{/if}
+	{:else}
+		{#if !bakedColor}
+			<div role="alert" class="alert alert-warning">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="stroke-current shrink-0 h-6 w-6"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+					/>
+				</svg>
+				<span>Warning! There's no Base Color Texture</span>
+			</div>
+		{/if}
 
-	{#if !bakedEmission}
-		<div role="alert" class="alert alert-warning">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="stroke-current shrink-0 h-6 w-6"
-				fill="none"
-				viewBox="0 0 24 24"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-				/>
-			</svg>
-			<span>Warning! There's no Emission Texture</span>
-		</div>
-	{/if}
+		{#if !bakedEmission}
+			<div role="alert" class="alert alert-warning">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="stroke-current shrink-0 h-6 w-6"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+					/>
+				</svg>
+				<span>Warning! There's no Emission Texture</span>
+			</div>
+		{/if}
 
-	{#if !bakedModel}
-		<div role="alert" class="alert alert-warning">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="stroke-current shrink-0 h-6 w-6"
-				fill="none"
-				viewBox="0 0 24 24"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-				/>
-			</svg>
-			<span>Warning! There's no Model provided</span>
-		</div>
+		{#if !bakedModel}
+			<div role="alert" class="alert alert-warning">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="stroke-current shrink-0 h-6 w-6"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+					/>
+				</svg>
+				<span>Warning! There's no Model provided</span>
+			</div>
+		{/if}
 	{/if}
-
 </div>
 
 {#if !bakedModel && !bakedColor && !bakedEmission && !$isChecked}
